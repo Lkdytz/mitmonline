@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: mitm-forum
+    env: node
+    branch: main
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
