@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Forum — Local</title>
+  <style>
+    @font-face { font-family: 'MITMFont'; src: url('../Funkyfre.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
+    :root{--bg:#FFBF00}
+    html,body{height:100%}
+    body{font-family:'MITMFont',system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);margin:0;padding:18px}
+    .container{max-width:900px;margin:0 auto}
+    .post{background:#fff;padding:12px;border-radius:6px;margin-bottom:12px}
+    .post h3{margin:0 0 8px}
+    .small{font-size:0.9rem;color:#555}
+    textarea{width:100%;min-height:72px}
+    input,button,textarea{padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:6px}
+    .controls{display:flex;gap:8px;margin-top:8px}
+    .meta{font-size:0.85rem;color:#666}
+    .top-actions{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+    pre{white-space:pre-wrap;word-break:break-word}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-actions">
+      <h1 style="margin:0">Forum</h1>
+      <button id="exportBtn">Export</button>
+      <button id="importBtn">Import</button>
+    </div>
+
+    <section id="create">
+      <input id="title" placeholder="Title" />
+      <input id="author" placeholder="Your name (optional)" />
+      <textarea id="content" placeholder="Write your post..."></textarea>
+      <div class="controls"><button id="createBtn">Create Post</button></div>
+    </section>
+
+    <hr />
+
+    <section>
+      <h2>Posts</h2>
+      <div id="posts"></div>
+    </section>
+
+    <template id="postTpl">
+      <div class="post">
+        <h3 data-title></h3>
+        <div class="meta" data-meta></div>
+        <p data-content></p>
+        <div data-replies></div>
+        <div style="margin-top:8px">
+          <input data-reply-author placeholder="Your name (optional)" />
+          <textarea data-reply-content placeholder="Reply..."></textarea>
+          <div class="controls"><button data-reply-btn>Reply</button></div>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <div id="importModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
+    <div style="background:#fff;padding:12px;border-radius:6px;width:90%;max-width:700px">
+      <h3>Import data.json</h3>
+      <p>Paste exported JSON here to load posts (this will replace local data).</p>
+      <textarea id="importArea" style="min-height:200px;width:100%"></textarea>
+      <div style="text-align:right;margin-top:8px"><button id="doImport">Load</button> <button id="closeImport">Close</button></div>
+    </div>
+  </div>
+
+  <script>
+    // Client-only forum using localStorage. No backend required.
+    const LS_KEY = 'mitm_local_posts_v1'
+    const postsEl = document.getElementById('posts')
+    const tpl = document.getElementById('postTpl')
+
+    function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||[] }catch(e){ return [] } }
+    function save(data){ localStorage.setItem(LS_KEY, JSON.stringify(data)) }
+    function now(){ return Date.now() }
+
+    function render(){ const list = load(); postsEl.innerHTML = ''; list.slice().reverse().forEach(p=>{ const n = tpl.content.cloneNode(true); n.querySelector('[data-title]').textContent = p.title; n.querySelector('[data-meta]').textContent = `${p.author||'Anonymous'} • ${new Date(p.createdAt).toLocaleString()}`; n.querySelector('[data-content]').textContent = p.content; const repliesEl = n.querySelector('[data-replies]'); (p.replies||[]).forEach(r=>{ const d = document.createElement('div'); d.className='small'; d.textContent = `${r.author||'Anonymous'}: ${r.content}`; repliesEl.appendChild(d) }); const replyBtn = n.querySelector('[data-reply-btn]'); replyBtn.addEventListener('click', ()=>{ const content = n.querySelector('[data-reply-content]').value; const author = n.querySelector('[data-reply-author]').value; if(!content) return; addReply(p.id, { id: Date.now(), content, author: author||'Anonymous', createdAt: now() }); n.querySelector('[data-reply-content]').value=''; render(); }); postsEl.appendChild(n) }) }
+
+    function addPost(title, content, author){ const list = load(); const id = (list[list.length-1]?.id||0) + 1; const post = { id, title, content, author: author||'Anonymous', replies: [], createdAt: now() }; list.push(post); save(list); return post }
+    function addReply(postId, reply){ const list = load(); const p = list.find(x=>x.id===postId); if(!p) return; p.replies = p.replies||[]; p.replies.push(reply); save(list) }
+
+    document.getElementById('createBtn').addEventListener('click', ()=>{ const title = document.getElementById('title').value.trim(); const content = document.getElementById('content').value.trim(); const author = document.getElementById('author').value.trim(); if(!title||!content) return alert('Title and content required'); addPost(title, content, author); document.getElementById('title').value=''; document.getElementById('content').value=''; render(); })
+
+    // Export / Import
+    document.getElementById('exportBtn').addEventListener('click', ()=>{ const data = JSON.stringify(load(), null, 2); navigator.clipboard.writeText(data).then(()=>alert('Exported JSON copied to clipboard')) })
+    document.getElementById('importBtn').addEventListener('click', ()=>{ document.getElementById('importModal').style.display='flex' })
+    document.getElementById('closeImport').addEventListener('click', ()=>{ document.getElementById('importModal').style.display='none' })
+    document.getElementById('doImport').addEventListener('click', ()=>{ try{ const j = JSON.parse(document.getElementById('importArea').value); if(!Array.isArray(j)) return alert('Invalid format: expected array'); save(j); document.getElementById('importModal').style.display='none'; render(); alert('Imported') }catch(e){ alert('Invalid JSON') } })
+
+    render()
+  </script>
+</body>
+</html>
