@@ -4,11 +4,14 @@ const REPO = process.env.REPO_NAME
 const BRANCH = process.env.BRANCH || 'main'
 const FILE_PATH = process.env.DATA_FILE_PATH || 'data.json'
 
-if (!TOKEN || !OWNER || !REPO) {
-  // handlers will check and return errors
+function ensureEnv() {
+  if (!TOKEN || !OWNER || !REPO) {
+    throw new Error('Missing GitHub environment variables: GITHUB_TOKEN, REPO_OWNER, REPO_NAME')
+  }
 }
 
 async function getFile() {
+  ensureEnv()
   const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`
   const res = await fetch(url, { headers: { Authorization: `token ${TOKEN}`, Accept: 'application/vnd.github.v3+json' } })
   if (!res.ok) return { json: { posts: [], nextId: 1 }, sha: null }
@@ -18,6 +21,7 @@ async function getFile() {
 }
 
 async function putFile(newJson, sha, message = 'Update forum data') {
+  ensureEnv()
   const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`
   const content = Buffer.from(JSON.stringify(newJson, null, 2)).toString('base64')
   const body = { message, content, branch: BRANCH }

@@ -27,6 +27,7 @@
       <input id="author" placeholder="Your name (optional)" />
       <textarea id="content" placeholder="Write your post..."></textarea>
       <button id="createBtn">Create Post</button>
+      <div id="message" class="note"></div>
     </section>
     <hr />
     <section>
@@ -111,18 +112,30 @@
     }
 
     createBtn.addEventListener('click', async () => {
+      const messageEl = document.getElementById('message')
+      messageEl.textContent = ''
       const title = document.getElementById('title').value.trim()
       const content = document.getElementById('content').value.trim()
       const author = document.getElementById('author').value.trim()
-      if (!title || !content) return alert('Title and content required')
-      await fetch(`${api}/posts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, content, author })
-      })
-      document.getElementById('title').value = ''
-      document.getElementById('content').value = ''
-      fetchPosts()
+      if (!title || !content) return messageEl.textContent = 'Title and content required.'
+
+      try {
+        const res = await fetch(`${api}/posts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, content, author })
+        })
+        const text = await res.text()
+        if (!res.ok) throw new Error(text || `HTTP ${res.status}`)
+        const data = JSON.parse(text)
+        document.getElementById('title').value = ''
+        document.getElementById('content').value = ''
+        messageEl.textContent = 'Post created.'
+        fetchPosts()
+      } catch (err) {
+        messageEl.textContent = 'Post failed: ' + err.message
+        console.error('createPost error', err)
+      }
     })
 
     fetchPosts()
