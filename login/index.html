@@ -56,6 +56,7 @@
         if (!res.ok) throw new Error(data.error || 'Login failed')
         localStorage.setItem('mitmForumUser', data.username)
         localStorage.setItem('mitmForumToken', data.token)
+        localStorage.setItem('mitmForumUserId', data.id)
         window.location.href = '/forums/index.html'
       } catch (err) {
         messageEl.textContent = err.message

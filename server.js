@@ -93,7 +93,7 @@ app.get('/api/auth/me', async (req, res) => {
     if (!user) {
       return res.status(401).json({ error: 'Not logged in' })
     }
-    res.json({ username: user.username })
+    res.json({ username: user.username, id: user.id })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })
@@ -122,7 +122,7 @@ app.post('/api/signup', async (req, res) => {
       json.users.push(user)
       try {
         await putFile(json, sha, `Create user ${user.username}`)
-        return res.json({ username: user.username, token })
+        return res.json({ username: user.username, token, id: user.id })
       } catch (err) {
         if (attempt === 3) throw err
       }
@@ -149,7 +149,7 @@ app.post('/api/login', async (req, res) => {
       user.token = generateToken()
       try {
         await putFile(json, sha, `Log in user ${user.username}`)
-        return res.json({ username: user.username, token: user.token })
+        return res.json({ username: user.username, token: user.token, id: user.id })
       } catch (err) {
         if (attempt === 3) throw err
       }
@@ -180,6 +180,7 @@ app.post('/api/posts', async (req, res) => {
         author: postAuthor,
         replies: [],
         reactions: { like: 0 },
+        likedBy: [],
         createdAt: Date.now()
       }
       json.posts.unshift(post)
@@ -238,21 +239,34 @@ app.post('/api/posts/:id/replies', async (req, res) => {
 
 app.post('/api/posts/:id/reactions', async (req, res) => {
   try {
+    const token = req.headers['x-user-token']
     const { type } = req.body
     if (!type || type !== 'like') {
       return res.status(400).json({ error: 'Reaction type invalid' })
+    }
+    if (!token) {
+      return res.status(401).json({ error: 'Login required to like posts' })
     }
     const id = Number(req.params.id)
 
     for (let attempt = 0; attempt < 4; attempt++) {
       const { json, sha } = await getFile()
-      json.posts = json.posts || []
+      ensureForumData(json)
       const post = json.posts.find(p => p.id === id)
       if (!post) {
         return res.status(404).json({ error: 'Post not found' })
       }
+      const user = getUserByToken(json, token)
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid login token' })
+      }
+      post.likedBy = post.likedBy || []
+      if (post.likedBy.includes(user.id)) {
+        return res.status(400).json({ error: 'You already liked this post' })
+      }
       post.reactions = post.reactions || { like: 0 }
-      post.reactions.like = (post.reactions.like || 0) + 1
+      post.likedBy.push(user.id)
+      post.reactions.like = post.likedBy.length
       try {
         await putFile(json, sha, `Add like to post ${id}`)
         return res.json({ type, count: post.reactions.like })

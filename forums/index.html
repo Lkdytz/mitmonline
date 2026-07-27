@@ -76,12 +76,14 @@
     const accountStatus = document.getElementById('accountStatus')
 
     const currentUserKey = 'mitmForumUser'
+    const currentUserIdKey = 'mitmForumUserId'
     const currentTokenKey = 'mitmForumToken'
     const guestCounterKey = 'mitmForumGuestCounter'
 
     let posts = []
     let isEditing = false
     let currentUser = localStorage.getItem(currentUserKey) || ''
+    let currentUserId = Number(localStorage.getItem(currentUserIdKey) || 0)
     let currentToken = localStorage.getItem(currentTokenKey) || ''
 
     document.addEventListener('focusin', (event) => {
@@ -131,7 +133,9 @@
         }
         const data = await res.json()
         currentUser = data.username
+        currentUserId = data.id
         localStorage.setItem(currentUserKey, currentUser)
+        localStorage.setItem(currentUserIdKey, String(currentUserId))
         updateAccountUI()
       } catch (err) {
         console.warn('Session validation failed', err)
@@ -195,7 +199,12 @@
         actionRow.appendChild(viewBtn)
 
         const likeBtn = el('button', { className: 'reaction-btn small-button' })
-        likeBtn.textContent = `👍 ${post.reactions?.like || 0}`
+        const userHasLiked = currentUserId && post.likedBy?.includes(currentUserId)
+        likeBtn.textContent = userHasLiked ? `❤️ ${post.reactions?.like || 0}` : `👍 ${post.reactions?.like || 0}`
+        if (userHasLiked) {
+          likeBtn.disabled = true
+          likeBtn.style.opacity = '0.6'
+        }
         actionRow.appendChild(likeBtn)
         postEl.appendChild(actionRow)
 
@@ -231,18 +240,24 @@
         })
 
         likeBtn.addEventListener('click', async () => {
+          if (!currentToken) {
+            return alert('Please log in to like posts.')
+          }
           try {
             likeBtn.disabled = true
             const res = await fetch(`${api}/posts/${post.id}/reactions`, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
               body: JSON.stringify({ type: 'like' })
             })
-            if (!res.ok) throw new Error(await res.text())
+            if (!res.ok) {
+              const text = await res.text()
+              throw new Error(text || 'Like failed')
+            }
             await fetchPosts()
           } catch (err) {
             console.error('reaction error', err)
-            alert('Failed to save reaction')
+            alert(err.message || 'Failed to save reaction')
           } finally {
             likeBtn.disabled = false
           }
@@ -298,8 +313,10 @@
 
     function signOut() {
       currentUser = ''
+      currentUserId = 0
       currentToken = ''
       localStorage.removeItem(currentUserKey)
+      localStorage.removeItem(currentUserIdKey)
       localStorage.removeItem(currentTokenKey)
       updateAccountUI()
     }
