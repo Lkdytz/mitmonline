@@ -6,6 +6,10 @@ const app = express()
 app.use(express.json())
 app.use(express.static(path.join(__dirname, '..')))
 
+app.get('/Funkyfre.ttf', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'Funkyfre.ttf'))
+})
+
 app.get('/api/posts', async (req, res) => {
   try {
     const { json } = await getFile()
