@@ -1,6 +1,15 @@
 {
   "version": 2,
-  "rewrites": [
-    { "source": "/", "destination": "/index.html" }
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "forums/**", "use": "@vercel/static" },
+    { "src": "Funkyfre.ttf", "use": "@vercel/static" },
+    { "src": "data.json", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/forums/(.*)", "dest": "/forums/$1" },
+    { "src": "/api/(.*)", "dest": "/api/$1" }
   ]
 }
