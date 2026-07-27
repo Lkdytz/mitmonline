@@ -1,6 +1,18 @@
 {
-  "posts": [],
-  "nextId": 1,
+  "posts": [
+    {
+      "id": 1,
+      "title": "Welcome!",
+      "content": "Hello guys! I am the owner of Malcolminthemiddle.online, Lkdytz! Tbh this website was made in like a day lol. But I hope you love it and enjoy!",
+      "author": "Lkdytz",
+      "replies": [],
+      "reactions": {
+        "like": 0
+      },
+      "createdAt": 1785174458040
+    }
+  ],
+  "nextId": 2,
   "users": [
     {
       "id": 1,
