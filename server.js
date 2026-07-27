@@ -6,8 +6,20 @@ const app = express()
 app.use(express.json())
 app.use(express.static(path.join(__dirname)))
 
+app.get('/Funkyfre.ttf', (req, res) => {
+  res.sendFile(path.join(__dirname, 'Funkyfre.ttf'))
+})
+
 app.get('/forums', (req, res) => {
   res.sendFile(path.join(__dirname, 'forums', 'index.html'))
+})
+
+app.get('/forums/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'forums', 'index.html'))
+})
+
+app.get('/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'))
 })
 
 app.get('/api/posts', async (req, res) => {
