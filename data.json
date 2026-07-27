@@ -7,9 +7,12 @@
       "author": "Lkdytz",
       "replies": [],
       "reactions": {
-        "like": 4
+        "like": 1
       },
-      "createdAt": 1785174458040
+      "createdAt": 1785174458040,
+      "likedBy": [
+        1
+      ]
     }
   ],
   "nextId": 2,
