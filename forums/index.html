@@ -37,8 +37,8 @@
     <h1>Public Forum</h1>
     <section class="account-row">
       <div id="accountStatus">Not signed in. Posts will publish as Guest.</div>
-      <input id="usernameInput" placeholder="Create a username" />
-      <button id="signupBtn">Sign Up</button>
+      <button id="signupBtn" class="small-button">Sign Up</button>
+      <button id="loginBtn" class="small-button">Log In</button>
       <button id="signoutBtn" class="hidden small-button">Sign Out</button>
     </section>
     <section class="sort-row">
@@ -70,17 +70,19 @@
     const createBtn = document.getElementById('createBtn')
     const sortSelect = document.getElementById('sortSelect')
     const searchInput = document.getElementById('searchInput')
-    const usernameInput = document.getElementById('usernameInput')
     const signupBtn = document.getElementById('signupBtn')
+    const loginBtn = document.getElementById('loginBtn')
     const signoutBtn = document.getElementById('signoutBtn')
     const accountStatus = document.getElementById('accountStatus')
 
     const currentUserKey = 'mitmForumUser'
+    const currentTokenKey = 'mitmForumToken'
     const guestCounterKey = 'mitmForumGuestCounter'
 
     let posts = []
     let isEditing = false
     let currentUser = localStorage.getItem(currentUserKey) || ''
+    let currentToken = localStorage.getItem(currentTokenKey) || ''
 
     document.addEventListener('focusin', (event) => {
       const tag = event.target.tagName
@@ -104,20 +106,36 @@
     }
 
     function updateAccountUI() {
-      if (currentUser) {
+      if (currentUser && currentToken) {
         accountStatus.textContent = `Signed in as ${currentUser}. You can post and reply with this name.`
         signoutBtn.classList.remove('hidden')
-        usernameInput.value = currentUser
-        usernameInput.disabled = true
-        signupBtn.textContent = 'Signed In'
-        signupBtn.disabled = true
+        signupBtn.classList.add('hidden')
+        loginBtn.classList.add('hidden')
       } else {
         accountStatus.textContent = 'Not signed in. Posts will publish as Guest.'
         signoutBtn.classList.add('hidden')
-        usernameInput.value = ''
-        usernameInput.disabled = false
-        signupBtn.textContent = 'Sign Up'
-        signupBtn.disabled = false
+        signupBtn.classList.remove('hidden')
+        loginBtn.classList.remove('hidden')
+      }
+    }
+
+    async function validateSession() {
+      if (!currentToken) return
+      try {
+        const res = await fetch(`${api}/auth/me`, {
+          headers: { 'X-User-Token': currentToken }
+        })
+        if (!res.ok) {
+          signOut()
+          return
+        }
+        const data = await res.json()
+        currentUser = data.username
+        localStorage.setItem(currentUserKey, currentUser)
+        updateAccountUI()
+      } catch (err) {
+        console.warn('Session validation failed', err)
+        signOut()
       }
     }
 
@@ -237,7 +255,7 @@
           try {
             const res = await fetch(`${api}/posts/${post.id}/replies`, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: getAuthHeaders(),
               body: JSON.stringify({ content, author })
             })
             if (!res.ok) throw new Error(await res.text())
@@ -264,23 +282,25 @@
         .replace(/'/g, '&#039;')
     }
 
-    async function signUp() {
-      const name = usernameInput.value.trim()
-      if (!name) return alert('Choose a username to sign up')
-      const normalized = name.toLowerCase()
-      const taken = posts.some(post => (post.author || '').toLowerCase() === normalized)
-        || posts.some(post => (post.replies || []).some(reply => (reply.author || '').toLowerCase() === normalized))
-      if (taken) {
-        return alert('That name is already taken by an existing user. Pick another username.')
-      }
-      currentUser = name
-      localStorage.setItem(currentUserKey, currentUser)
-      updateAccountUI()
+    function getAuthHeaders() {
+      const headers = { 'Content-Type': 'application/json' }
+      if (currentToken) headers['X-User-Token'] = currentToken
+      return headers
+    }
+
+    function openSignup() {
+      window.location.href = '/signup/'
+    }
+
+    function openLogin() {
+      window.location.href = '/login/'
     }
 
     function signOut() {
       currentUser = ''
+      currentToken = ''
       localStorage.removeItem(currentUserKey)
+      localStorage.removeItem(currentTokenKey)
       updateAccountUI()
     }
 
@@ -296,7 +316,7 @@
       try {
         const res = await fetch(`${api}/posts`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify({ title, content, author })
         })
         const text = await res.text()
@@ -312,13 +332,14 @@
       }
     })
 
-    signupBtn.addEventListener('click', signUp)
+    signupBtn.addEventListener('click', openSignup)
+    loginBtn.addEventListener('click', openLogin)
     signoutBtn.addEventListener('click', signOut)
     sortSelect.addEventListener('change', renderPosts)
     searchInput.addEventListener('input', renderPosts)
 
     updateAccountUI()
-    fetchPosts()
+    validateSession().then(fetchPosts)
     setInterval(fetchPosts, 3000)
   </script>
 </body>

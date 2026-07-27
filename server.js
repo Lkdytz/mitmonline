@@ -1,10 +1,38 @@
 const express = require('express')
 const path = require('path')
+const crypto = require('crypto')
 const { getFile, putFile } = require('./api/githubHelpers')
 
 const app = express()
 app.use(express.json())
 app.use(express.static(path.join(__dirname)))
+
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(String(password)).digest('hex')
+}
+
+function generateToken() {
+  return crypto.randomBytes(24).toString('hex')
+}
+
+function ensureForumData(json) {
+  json.posts = json.posts || []
+  json.users = json.users || []
+  json.nextId = json.nextId || 1
+  json.nextUserId = json.nextUserId || 1
+}
+
+function getUserByToken(json, token) {
+  if (!token) return null
+  return json.users.find(user => user.token === token)
+}
+
+function isUsernameTaken(json, username) {
+  const normalized = String(username).trim().toLowerCase()
+  if (!normalized) return false
+  if (json.users.some(user => user.username.toLowerCase() === normalized)) return true
+  return json.posts.some(post => (post.author || '').toLowerCase() === normalized || (post.replies || []).some(reply => (reply.author || '').toLowerCase() === normalized))
+}
 
 app.get('/Funkyfre.ttf', (req, res) => {
   res.sendFile(path.join(__dirname, 'Funkyfre.ttf'))
@@ -32,8 +60,85 @@ app.get('/api/posts', async (req, res) => {
   }
 })
 
+app.get('/api/auth/me', async (req, res) => {
+  try {
+    const token = req.headers['x-user-token']
+    const { json } = await getFile()
+    ensureForumData(json)
+    const user = getUserByToken(json, token)
+    if (!user) {
+      return res.status(401).json({ error: 'Not logged in' })
+    }
+    res.json({ username: user.username })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/signup', async (req, res) => {
+  try {
+    const { username, password } = req.body
+    if (!username || !password) {
+      return res.status(400).json({ error: 'username and password required' })
+    }
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { json, sha } = await getFile()
+      ensureForumData(json)
+      if (isUsernameTaken(json, username)) {
+        return res.status(400).json({ error: 'Username already in use' })
+      }
+      const token = generateToken()
+      const user = {
+        id: json.nextUserId++,
+        username: String(username).trim(),
+        password: hashPassword(password),
+        token
+      }
+      json.users.push(user)
+      try {
+        await putFile(json, sha, `Create user ${user.username}`)
+        return res.json({ username: user.username, token })
+      } catch (err) {
+        if (attempt === 3) throw err
+      }
+    }
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/login', async (req, res) => {
+  try {
+    const { username, password } = req.body
+    if (!username || !password) {
+      return res.status(400).json({ error: 'username and password required' })
+    }
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { json, sha } = await getFile()
+      ensureForumData(json)
+      const user = json.users.find(u => u.username.toLowerCase() === String(username).trim().toLowerCase())
+      if (!user || user.password !== hashPassword(password)) {
+        return res.status(401).json({ error: 'Invalid username or password' })
+      }
+      user.token = generateToken()
+      try {
+        await putFile(json, sha, `Log in user ${user.username}`)
+        return res.json({ username: user.username, token: user.token })
+      } catch (err) {
+        if (attempt === 3) throw err
+      }
+    }
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 app.post('/api/posts', async (req, res) => {
   try {
+    const token = req.headers['x-user-token']
     const { title, content, author } = req.body
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content required' })
@@ -41,13 +146,14 @@ app.post('/api/posts', async (req, res) => {
 
     for (let attempt = 0; attempt < 4; attempt++) {
       const { json, sha } = await getFile()
-      json.posts = json.posts || []
-      json.nextId = json.nextId || 1
+      ensureForumData(json)
+      const user = getUserByToken(json, token)
+      const postAuthor = user ? user.username : (author || 'Anonymous')
       const post = {
         id: json.nextId++,
         title,
         content,
-        author: author || 'Anonymous',
+        author: postAuthor,
         replies: [],
         reactions: { like: 0 },
         createdAt: Date.now()
@@ -68,6 +174,7 @@ app.post('/api/posts', async (req, res) => {
 
 app.post('/api/posts/:id/replies', async (req, res) => {
   try {
+    const token = req.headers['x-user-token']
     const { content, author } = req.body
     if (!content) {
       return res.status(400).json({ error: 'Reply content required' })
@@ -76,16 +183,19 @@ app.post('/api/posts/:id/replies', async (req, res) => {
 
     for (let attempt = 0; attempt < 4; attempt++) {
       const { json, sha } = await getFile()
-      json.posts = json.posts || []
+      ensureForumData(json)
       const post = json.posts.find(p => p.id === id)
       if (!post) {
         return res.status(404).json({ error: 'Post not found' })
       }
+      const user = getUserByToken(json, token)
+      const replyAuthor = user ? user.username : (author || 'Guest')
+
       post.replies = post.replies || []
       const reply = {
         id: Date.now(),
         content,
-        author: author || 'Anonymous',
+        author: replyAuthor,
         createdAt: Date.now()
       }
       post.replies.push(reply)
