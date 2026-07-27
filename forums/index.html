@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Forum — Local</title>
+  <title>Public Forum</title>
   <style>
     @font-face { font-family: 'MITMFont'; src: url('../Funkyfre.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
     :root{--bg:#FFBF00}
@@ -13,84 +13,117 @@
     .post{background:#fff;padding:12px;border-radius:6px;margin-bottom:12px}
     .post h3{margin:0 0 8px}
     .small{font-size:0.9rem;color:#555}
-    textarea{width:100%;min-height:72px}
-    input,button,textarea{padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:6px}
-    .controls{display:flex;gap:8px;margin-top:8px}
-    .meta{font-size:0.85rem;color:#666}
-    .top-actions{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-    pre{white-space:pre-wrap;word-break:break-word}
+    .meta{font-size:0.85rem;color:#666;margin-bottom:10px}
+    .note{font-size:0.95rem;color:#222;margin-bottom:14px}
+    input,textarea,button{width:100%;padding:10px;border:1px solid #b59a36;border-radius:8px;margin-top:10px;font-family:'MITMFont',inherit}
+    button{background:#fff;color:#000;cursor:pointer}
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="top-actions">
-      <h1 style="margin:0">Forum</h1>
-      <button id="exportBtn">Export</button>
-      <button id="importBtn">Import</button>
-    </div>
-
+    <h1>Public Forum</h1>
     <section id="create">
       <input id="title" placeholder="Title" />
       <input id="author" placeholder="Your name (optional)" />
       <textarea id="content" placeholder="Write your post..."></textarea>
-      <div class="controls"><button id="createBtn">Create Post</button></div>
+      <button id="createBtn">Create Post</button>
     </section>
-
     <hr />
-
     <section>
       <h2>Posts</h2>
-      <div id="posts"></div>
+      <div id="posts">Loading posts...</div>
     </section>
-
-    <template id="postTpl">
-      <div class="post">
-        <h3 data-title></h3>
-        <div class="meta" data-meta></div>
-        <p data-content></p>
-        <div data-replies></div>
-        <div style="margin-top:8px">
-          <input data-reply-author placeholder="Your name (optional)" />
-          <textarea data-reply-content placeholder="Reply..."></textarea>
-          <div class="controls"><button data-reply-btn>Reply</button></div>
-        </div>
-      </div>
-    </template>
   </div>
-
-  <div id="importModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
-    <div style="background:#fff;padding:12px;border-radius:6px;width:90%;max-width:700px">
-      <h3>Import data.json</h3>
-      <p>Paste exported JSON here to load posts (this will replace local data).</p>
-      <textarea id="importArea" style="min-height:200px;width:100%"></textarea>
-      <div style="text-align:right;margin-top:8px"><button id="doImport">Load</button> <button id="closeImport">Close</button></div>
-    </div>
-  </div>
-
   <script>
-    // Client-only forum using localStorage. No backend required.
-    const LS_KEY = 'mitm_local_posts_v1'
+    const api = '/api'
     const postsEl = document.getElementById('posts')
-    const tpl = document.getElementById('postTpl')
+    const createBtn = document.getElementById('createBtn')
 
-    function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||[] }catch(e){ return [] } }
-    function save(data){ localStorage.setItem(LS_KEY, JSON.stringify(data)) }
-    function now(){ return Date.now() }
+    function el(tag, attrs){ const e=document.createElement(tag); for(const k in attrs) e[k]=attrs[k]; return e }
 
-    function render(){ const list = load(); postsEl.innerHTML = ''; list.slice().reverse().forEach(p=>{ const n = tpl.content.cloneNode(true); n.querySelector('[data-title]').textContent = p.title; n.querySelector('[data-meta]').textContent = `${p.author||'Anonymous'} • ${new Date(p.createdAt).toLocaleString()}`; n.querySelector('[data-content]').textContent = p.content; const repliesEl = n.querySelector('[data-replies]'); (p.replies||[]).forEach(r=>{ const d = document.createElement('div'); d.className='small'; d.textContent = `${r.author||'Anonymous'}: ${r.content}`; repliesEl.appendChild(d) }); const replyBtn = n.querySelector('[data-reply-btn]'); replyBtn.addEventListener('click', ()=>{ const content = n.querySelector('[data-reply-content]').value; const author = n.querySelector('[data-reply-author]').value; if(!content) return; addReply(p.id, { id: Date.now(), content, author: author||'Anonymous', createdAt: now() }); n.querySelector('[data-reply-content]').value=''; render(); }); postsEl.appendChild(n) }) }
+    async function fetchPosts(){
+      try {
+        const res = await fetch(`${api}/posts`)
+        const data = await res.json()
+        renderPosts(data)
+      } catch (err) {
+        postsEl.textContent = 'Failed to load posts.'
+        console.error(err)
+      }
+    }
 
-    function addPost(title, content, author){ const list = load(); const id = (list[list.length-1]?.id||0) + 1; const post = { id, title, content, author: author||'Anonymous', replies: [], createdAt: now() }; list.push(post); save(list); return post }
-    function addReply(postId, reply){ const list = load(); const p = list.find(x=>x.id===postId); if(!p) return; p.replies = p.replies||[]; p.replies.push(reply); save(list) }
+    function renderPosts(list){
+      if (!list.length) {
+        postsEl.innerHTML = '<p>No posts yet. Create one above.</p>'
+        return
+      }
+      postsEl.innerHTML = ''
+      list.forEach(post => {
+        const postEl = el('div', { className: 'post' })
+        postEl.innerHTML = `
+          <h3>${escapeHtml(post.title)}</h3>
+          <div class="meta">${escapeHtml(post.author || 'Anonymous')} • ${new Date(post.createdAt).toLocaleString()}</div>
+          <p>${escapeHtml(post.content)}</p>
+        `
+        if (post.replies && post.replies.length) {
+          const replies = el('div', {})
+          replies.innerHTML = '<strong>Replies:</strong>'
+          post.replies.forEach(reply => {
+            const replyEl = el('div', { className: 'small' })
+            replyEl.textContent = `${reply.author || 'Anonymous'}: ${reply.content}`
+            replies.appendChild(replyEl)
+          })
+          postEl.appendChild(replies)
+        }
+        const replyAuthor = el('input', { placeholder: 'Your name (optional)' })
+        const replyContent = el('textarea', { placeholder: 'Reply...' })
+        const replyBtn = el('button', {})
+        replyBtn.textContent = 'Reply'
+        replyBtn.addEventListener('click', async () => {
+          const content = replyContent.value.trim()
+          const author = replyAuthor.value.trim()
+          if (!content) return alert('Reply text required')
+          await fetch(`${api}/posts/${post.id}/replies`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content, author })
+          })
+          replyContent.value = ''
+          fetchPosts()
+        })
+        postEl.appendChild(replyAuthor)
+        postEl.appendChild(replyContent)
+        postEl.appendChild(replyBtn)
+        postsEl.appendChild(postEl)
+      })
+    }
 
-    document.getElementById('createBtn').addEventListener('click', ()=>{ const title = document.getElementById('title').value.trim(); const content = document.getElementById('content').value.trim(); const author = document.getElementById('author').value.trim(); if(!title||!content) return alert('Title and content required'); addPost(title, content, author); document.getElementById('title').value=''; document.getElementById('content').value=''; render(); })
+    function escapeHtml(text){
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+    }
 
-    // Export / Import
-    document.getElementById('exportBtn').addEventListener('click', ()=>{ const data = JSON.stringify(load(), null, 2); navigator.clipboard.writeText(data).then(()=>alert('Exported JSON copied to clipboard')) })
-    document.getElementById('importBtn').addEventListener('click', ()=>{ document.getElementById('importModal').style.display='flex' })
-    document.getElementById('closeImport').addEventListener('click', ()=>{ document.getElementById('importModal').style.display='none' })
-    document.getElementById('doImport').addEventListener('click', ()=>{ try{ const j = JSON.parse(document.getElementById('importArea').value); if(!Array.isArray(j)) return alert('Invalid format: expected array'); save(j); document.getElementById('importModal').style.display='none'; render(); alert('Imported') }catch(e){ alert('Invalid JSON') } })
+    createBtn.addEventListener('click', async () => {
+      const title = document.getElementById('title').value.trim()
+      const content = document.getElementById('content').value.trim()
+      const author = document.getElementById('author').value.trim()
+      if (!title || !content) return alert('Title and content required')
+      await fetch(`${api}/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content, author })
+      })
+      document.getElementById('title').value = ''
+      document.getElementById('content').value = ''
+      fetchPosts()
+    })
 
-    render()
+    fetchPosts()
+    setInterval(fetchPosts, 3000)
   </script>
 </body>
 </html>
