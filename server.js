@@ -46,6 +46,30 @@ app.get('/forums/index.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'forums', 'index.html'))
 })
 
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'login', 'index.html'))
+})
+
+app.get('/login/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'login', 'index.html'))
+})
+
+app.get('/login/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'login', 'index.html'))
+})
+
+app.get('/signup', (req, res) => {
+  res.sendFile(path.join(__dirname, 'signup', 'index.html'))
+})
+
+app.get('/signup/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'signup', 'index.html'))
+})
+
+app.get('/signup/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'signup', 'index.html'))
+})
+
 app.get('/index.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'))
 })
