@@ -52,10 +52,25 @@
     const sortSelect = document.getElementById('sortSelect')
 
     let posts = []
+    let isEditing = false
+
+    document.addEventListener('focusin', (event) => {
+      const tag = event.target.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') {
+        isEditing = true
+      }
+    })
+    document.addEventListener('focusout', (event) => {
+      const tag = event.target.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') {
+        isEditing = false
+      }
+    })
 
     function el(tag, attrs){ const e=document.createElement(tag); for(const k in attrs) e[k]=attrs[k]; return e }
 
     async function fetchPosts(){
+      if (isEditing) return
       try {
         const res = await fetch(`${api}/posts`)
         const text = await res.text()
