@@ -49,6 +49,7 @@ app.post('/api/posts', async (req, res) => {
         content,
         author: author || 'Anonymous',
         replies: [],
+        reactions: { like: 0 },
         createdAt: Date.now()
       }
       json.posts.unshift(post)
@@ -91,6 +92,36 @@ app.post('/api/posts/:id/replies', async (req, res) => {
       try {
         await putFile(json, sha, `Add reply to post ${id}`)
         return res.json(reply)
+      } catch (err) {
+        if (attempt === 3) throw err
+      }
+    }
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/posts/:id/reactions', async (req, res) => {
+  try {
+    const { type } = req.body
+    if (!type || type !== 'like') {
+      return res.status(400).json({ error: 'Reaction type invalid' })
+    }
+    const id = Number(req.params.id)
+
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { json, sha } = await getFile()
+      json.posts = json.posts || []
+      const post = json.posts.find(p => p.id === id)
+      if (!post) {
+        return res.status(404).json({ error: 'Post not found' })
+      }
+      post.reactions = post.reactions || { like: 0 }
+      post.reactions.like = (post.reactions.like || 0) + 1
+      try {
+        await putFile(json, sha, `Add like to post ${id}`)
+        return res.json({ type, count: post.reactions.like })
       } catch (err) {
         if (attempt === 3) throw err
       }

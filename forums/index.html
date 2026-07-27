@@ -13,34 +13,53 @@
     .container{max-width:900px;margin:0 auto}
     .post{background:#fff;padding:12px;border-radius:6px;margin-bottom:12px}
     .post h3{margin:0 0 8px}
+    .post-footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
     .small{font-size:0.9rem;color:#555}
     .meta{font-size:0.85rem;color:#666;margin-bottom:10px}
     .note{font-size:0.95rem;color:#222;margin-bottom:14px}
+    .sort-row,.account-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+    .reply-box{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+    .reply-list{margin-top:10px;padding-left:14px}
+    .reply-item{background:#f8f0b6;padding:8px;border-radius:6px;margin-top:6px}
+    .reply-count{font-weight:700}
+    .hidden{display:none}
     input,textarea,button{width:100%;padding:10px;border:1px solid #b59a36;border-radius:8px;margin-top:10px;font-family:'MITMFont',inherit}
     button{background:#fff;color:#000;cursor:pointer}
+    .small-button{width:auto;padding:8px 12px}
+    .inline-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .inline-row input{flex:1}
+    .post-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .reaction-btn{border:1px solid #b59a36;background:#fff;padding:6px 10px;border-radius:8px;cursor:pointer}
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Public Forum</h1>
+    <section class="account-row">
+      <div id="accountStatus">Not signed in. Posts will publish as Guest.</div>
+      <input id="usernameInput" placeholder="Create a username" />
+      <button id="signupBtn">Sign Up</button>
+      <button id="signoutBtn" class="hidden small-button">Sign Out</button>
+    </section>
+    <section class="sort-row">
+      <label for="searchInput">Search</label>
+      <input id="searchInput" placeholder="Search posts" />
+      <label for="sortSelect">Sort posts:</label>
+      <select id="sortSelect">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="replies">Most replies</option>
+        <option value="leastReplies">Fewest replies</option>
+      </select>
+    </section>
     <section id="create">
       <input id="title" placeholder="Title" />
-      <input id="author" placeholder="Your name (optional)" />
       <textarea id="content" placeholder="Write your post..."></textarea>
       <button id="createBtn">Create Post</button>
       <div id="message" class="note"></div>
     </section>
     <hr />
     <section>
-      <div class="sort-row">
-        <label for="sortSelect">Sort posts:</label>
-        <select id="sortSelect">
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-          <option value="replies">Most replies</option>
-          <option value="leastReplies">Fewest replies</option>
-        </select>
-      </div>
       <h2>Posts</h2>
       <div id="posts">Loading posts...</div>
     </section>
@@ -50,9 +69,18 @@
     const postsEl = document.getElementById('posts')
     const createBtn = document.getElementById('createBtn')
     const sortSelect = document.getElementById('sortSelect')
+    const searchInput = document.getElementById('searchInput')
+    const usernameInput = document.getElementById('usernameInput')
+    const signupBtn = document.getElementById('signupBtn')
+    const signoutBtn = document.getElementById('signoutBtn')
+    const accountStatus = document.getElementById('accountStatus')
+
+    const currentUserKey = 'mitmForumUser'
+    const guestCounterKey = 'mitmForumGuestCounter'
 
     let posts = []
     let isEditing = false
+    let currentUser = localStorage.getItem(currentUserKey) || ''
 
     document.addEventListener('focusin', (event) => {
       const tag = event.target.tagName
@@ -67,9 +95,33 @@
       }
     })
 
-    function el(tag, attrs){ const e=document.createElement(tag); for(const k in attrs) e[k]=attrs[k]; return e }
+    function el(tag, attrs){ const e = document.createElement(tag); for (const k in attrs) if (attrs[k] !== undefined) e[k] = attrs[k]; return e }
 
-    async function fetchPosts(){
+    function getGuestAuthor() {
+      const next = Number(localStorage.getItem(guestCounterKey) || 1)
+      localStorage.setItem(guestCounterKey, String(next + 1))
+      return `Guest #${next}`
+    }
+
+    function updateAccountUI() {
+      if (currentUser) {
+        accountStatus.textContent = `Signed in as ${currentUser}. You can post and reply with this name.`
+        signoutBtn.classList.remove('hidden')
+        usernameInput.value = currentUser
+        usernameInput.disabled = true
+        signupBtn.textContent = 'Signed In'
+        signupBtn.disabled = true
+      } else {
+        accountStatus.textContent = 'Not signed in. Posts will publish as Guest.'
+        signoutBtn.classList.add('hidden')
+        usernameInput.value = ''
+        usernameInput.disabled = false
+        signupBtn.textContent = 'Sign Up'
+        signupBtn.disabled = false
+      }
+    }
+
+    async function fetchPosts() {
       if (isEditing) return
       try {
         const res = await fetch(`${api}/posts`)
@@ -85,24 +137,29 @@
       }
     }
 
-    function sortPosts(list){
+    function sortPosts(list) {
       const order = sortSelect.value
-      if (order === 'oldest') {
-        return [...list].sort((a,b) => a.createdAt - b.createdAt)
-      }
-      if (order === 'replies') {
-        return [...list].sort((a,b) => (b.replies?.length || 0) - (a.replies?.length || 0))
-      }
-      if (order === 'leastReplies') {
-        return [...list].sort((a,b) => (a.replies?.length || 0) - (b.replies?.length || 0))
-      }
+      if (order === 'oldest') return [...list].sort((a,b) => a.createdAt - b.createdAt)
+      if (order === 'replies') return [...list].sort((a,b) => (b.replies?.length || 0) - (a.replies?.length || 0))
+      if (order === 'leastReplies') return [...list].sort((a,b) => (a.replies?.length || 0) - (b.replies?.length || 0))
       return [...list].sort((a,b) => b.createdAt - a.createdAt)
     }
 
-    function renderPosts(){
-      const list = sortPosts(posts)
+    function filterPosts(list) {
+      const query = searchInput.value.trim().toLowerCase()
+      if (!query) return list
+      return list.filter(post => {
+        return post.title.toLowerCase().includes(query)
+          || post.content.toLowerCase().includes(query)
+          || (post.author || '').toLowerCase().includes(query)
+          || (post.replies || []).some(reply => reply.content.toLowerCase().includes(query) || (reply.author || '').toLowerCase().includes(query))
+      })
+    }
+
+    function renderPosts() {
+      const list = filterPosts(sortPosts(posts))
       if (!list.length) {
-        postsEl.innerHTML = '<p>No posts yet. Create one above.</p>'
+        postsEl.innerHTML = '<p>No posts found. Create one above or change the search.</p>'
         return
       }
       postsEl.innerHTML = ''
@@ -113,40 +170,92 @@
           <div class="meta">${escapeHtml(post.author || 'Anonymous')} • ${new Date(post.createdAt).toLocaleString()}</div>
           <p>${escapeHtml(post.content)}</p>
         `
+
+        const actionRow = el('div', { className: 'post-actions' })
+        const viewBtn = el('button', { className: 'small-button' })
+        viewBtn.textContent = `View replies (${post.replies?.length || 0})`
+        actionRow.appendChild(viewBtn)
+
+        const likeBtn = el('button', { className: 'reaction-btn small-button' })
+        likeBtn.textContent = `👍 ${post.reactions?.like || 0}`
+        actionRow.appendChild(likeBtn)
+        postEl.appendChild(actionRow)
+
+        const repliesSection = el('div', { className: 'reply-list hidden' })
+        const repliesHeader = el('div', { innerHTML: `<strong>Replies (${post.replies?.length || 0})</strong>` })
+        repliesSection.appendChild(repliesHeader)
+
         if (post.replies && post.replies.length) {
-          const replies = el('div', {})
-          replies.innerHTML = '<strong>Replies:</strong>'
           post.replies.forEach(reply => {
-            const replyEl = el('div', { className: 'small' })
-            replyEl.textContent = `${reply.author || 'Anonymous'}: ${reply.content}`
-            replies.appendChild(replyEl)
+            const replyEl = el('div', { className: 'reply-item' })
+            replyEl.innerHTML = `<span class="small"><strong>${escapeHtml(reply.author || 'Anonymous')}</strong> • ${new Date(reply.createdAt).toLocaleString()}</span><p>${escapeHtml(reply.content)}</p>`
+            repliesSection.appendChild(replyEl)
           })
-          postEl.appendChild(replies)
+        } else {
+          const empty = el('div', { className: 'small' })
+          empty.textContent = 'No replies yet.'
+          repliesSection.appendChild(empty)
         }
+
         const replyAuthor = el('input', { placeholder: 'Your name (optional)' })
         const replyContent = el('textarea', { placeholder: 'Reply...' })
-        const replyBtn = el('button', {})
-        replyBtn.textContent = 'Reply'
+        const replyBtn = el('button', { className: 'small-button' })
+        replyBtn.textContent = 'Post reply'
+        const replyForm = el('div', { className: 'reply-box' })
+        replyForm.appendChild(replyAuthor)
+        replyForm.appendChild(replyContent)
+        replyForm.appendChild(replyBtn)
+        repliesSection.appendChild(replyForm)
+
+        viewBtn.addEventListener('click', () => {
+          repliesSection.classList.toggle('hidden')
+          viewBtn.textContent = repliesSection.classList.contains('hidden') ? `View replies (${post.replies?.length || 0})` : `Hide replies (${post.replies?.length || 0})`
+        })
+
+        likeBtn.addEventListener('click', async () => {
+          try {
+            likeBtn.disabled = true
+            const res = await fetch(`${api}/posts/${post.id}/reactions`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'like' })
+            })
+            if (!res.ok) throw new Error(await res.text())
+            await fetchPosts()
+          } catch (err) {
+            console.error('reaction error', err)
+            alert('Failed to save reaction')
+          } finally {
+            likeBtn.disabled = false
+          }
+        })
+
         replyBtn.addEventListener('click', async () => {
           const content = replyContent.value.trim()
-          const author = replyAuthor.value.trim()
+          const author = currentUser || replyAuthor.value.trim() || getGuestAuthor()
           if (!content) return alert('Reply text required')
-          await fetch(`${api}/posts/${post.id}/replies`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content, author })
-          })
-          replyContent.value = ''
-          fetchPosts()
+          try {
+            const res = await fetch(`${api}/posts/${post.id}/replies`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ content, author })
+            })
+            if (!res.ok) throw new Error(await res.text())
+            replyContent.value = ''
+            replyAuthor.value = ''
+            fetchPosts()
+          } catch (err) {
+            console.error('reply error', err)
+            alert('Failed to send reply')
+          }
         })
-        postEl.appendChild(replyAuthor)
-        postEl.appendChild(replyContent)
-        postEl.appendChild(replyBtn)
+
         postsEl.appendChild(postEl)
+        postsEl.appendChild(repliesSection)
       })
     }
 
-    function escapeHtml(text){
+    function escapeHtml(text) {
       return String(text)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -155,13 +264,34 @@
         .replace(/'/g, '&#039;')
     }
 
+    async function signUp() {
+      const name = usernameInput.value.trim()
+      if (!name) return alert('Choose a username to sign up')
+      const normalized = name.toLowerCase()
+      const taken = posts.some(post => (post.author || '').toLowerCase() === normalized)
+        || posts.some(post => (post.replies || []).some(reply => (reply.author || '').toLowerCase() === normalized))
+      if (taken) {
+        return alert('That name is already taken by an existing user. Pick another username.')
+      }
+      currentUser = name
+      localStorage.setItem(currentUserKey, currentUser)
+      updateAccountUI()
+    }
+
+    function signOut() {
+      currentUser = ''
+      localStorage.removeItem(currentUserKey)
+      updateAccountUI()
+    }
+
     createBtn.addEventListener('click', async () => {
       const messageEl = document.getElementById('message')
       messageEl.textContent = ''
       const title = document.getElementById('title').value.trim()
       const content = document.getElementById('content').value.trim()
-      const author = document.getElementById('author').value.trim()
       if (!title || !content) return messageEl.textContent = 'Title and content required.'
+
+      const author = currentUser || getGuestAuthor()
 
       try {
         const res = await fetch(`${api}/posts`, {
@@ -182,8 +312,12 @@
       }
     })
 
+    signupBtn.addEventListener('click', signUp)
+    signoutBtn.addEventListener('click', signOut)
     sortSelect.addEventListener('change', renderPosts)
+    searchInput.addEventListener('input', renderPosts)
 
+    updateAccountUI()
     fetchPosts()
     setInterval(fetchPosts, 3000)
   </script>

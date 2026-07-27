@@ -1,28 +1,4 @@
 {
-  "posts": [
-    {
-      "id": 2,
-      "title": "Welcome!",
-      "content": "Welcome to Malcolminthemiddle.online!",
-      "author": "Owner (Dylan)",
-      "replies": [
-        {
-          "id": 1785164246817,
-          "content": "test",
-          "author": "TOTALLY NOT OWNER",
-          "createdAt": 1785164246817
-        }
-      ],
-      "createdAt": 1785163602969
-    },
-    {
-      "id": 1,
-      "title": "Welcome!",
-      "content": "Welcome to Malcolminthemiddle.online!",
-      "author": "Owner (Dylan)",
-      "replies": [],
-      "createdAt": 1785163601951
-    }
-  ],
-  "nextId": 3
+  "posts": [],
+  "nextId": 1
 }
