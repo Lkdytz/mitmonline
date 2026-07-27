@@ -1,9 +1,5 @@
 {
   "name": "mitm-forum",
   "version": "1.0.0",
-  "private": true,
-  "main": "server.js",
-  "dependencies": {
-    "express": "^4.18.4"
-  }
+  "private": true
 }
