@@ -1,4 +1,13 @@
 {
-  "posts": [],
-  "nextId": 1
+  "posts": [
+    {
+      "id": 1,
+      "title": "Welcome!",
+      "content": "Welcome to Malcolminthemiddle.online!",
+      "author": "Owner (Dylan)",
+      "replies": [],
+      "createdAt": 1785163601951
+    }
+  ],
+  "nextId": 2
 }
