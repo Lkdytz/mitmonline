@@ -82,6 +82,7 @@
 
     let posts = []
     let isEditing = false
+    let expandedPosts = new Set()
     let currentUser = localStorage.getItem(currentUserKey) || ''
     let currentUserId = Number(localStorage.getItem(currentUserIdKey) || 0)
     let currentToken = localStorage.getItem(currentTokenKey) || ''
@@ -234,9 +235,21 @@
         replyForm.appendChild(replyBtn)
         repliesSection.appendChild(replyForm)
 
+        const isExpanded = expandedPosts.has(post.id)
+        if (isExpanded) {
+          repliesSection.classList.remove('hidden')
+          viewBtn.textContent = `Hide replies (${post.replies?.length || 0})`
+        }
+
         viewBtn.addEventListener('click', () => {
-          repliesSection.classList.toggle('hidden')
-          viewBtn.textContent = repliesSection.classList.contains('hidden') ? `View replies (${post.replies?.length || 0})` : `Hide replies (${post.replies?.length || 0})`
+          const shown = repliesSection.classList.toggle('hidden') === false
+          if (shown) {
+            expandedPosts.add(post.id)
+            viewBtn.textContent = `Hide replies (${post.replies?.length || 0})`
+          } else {
+            expandedPosts.delete(post.id)
+            viewBtn.textContent = `View replies (${post.replies?.length || 0})`
+          }
         })
 
         likeBtn.addEventListener('click', async () => {
