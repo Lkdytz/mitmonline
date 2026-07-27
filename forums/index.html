@@ -32,6 +32,15 @@
     </section>
     <hr />
     <section>
+      <div class="sort-row">
+        <label for="sortSelect">Sort posts:</label>
+        <select id="sortSelect">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="replies">Most replies</option>
+          <option value="leastReplies">Fewest replies</option>
+        </select>
+      </div>
       <h2>Posts</h2>
       <div id="posts">Loading posts...</div>
     </section>
@@ -40,6 +49,9 @@
     const api = '/api'
     const postsEl = document.getElementById('posts')
     const createBtn = document.getElementById('createBtn')
+    const sortSelect = document.getElementById('sortSelect')
+
+    let posts = []
 
     function el(tag, attrs){ const e=document.createElement(tag); for(const k in attrs) e[k]=attrs[k]; return e }
 
@@ -50,14 +62,30 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`)
         let data
         try { data = JSON.parse(text) } catch (err) { throw new Error(`Invalid JSON response: ${text}`) }
-        renderPosts(data)
+        posts = data
+        renderPosts()
       } catch (err) {
         postsEl.textContent = 'Failed to load posts: ' + err.message
         console.error('fetchPosts error', err)
       }
     }
 
-    function renderPosts(list){
+    function sortPosts(list){
+      const order = sortSelect.value
+      if (order === 'oldest') {
+        return [...list].sort((a,b) => a.createdAt - b.createdAt)
+      }
+      if (order === 'replies') {
+        return [...list].sort((a,b) => (b.replies?.length || 0) - (a.replies?.length || 0))
+      }
+      if (order === 'leastReplies') {
+        return [...list].sort((a,b) => (a.replies?.length || 0) - (b.replies?.length || 0))
+      }
+      return [...list].sort((a,b) => b.createdAt - a.createdAt)
+    }
+
+    function renderPosts(){
+      const list = sortPosts(posts)
       if (!list.length) {
         postsEl.innerHTML = '<p>No posts yet. Create one above.</p>'
         return
@@ -128,7 +156,7 @@
         })
         const text = await res.text()
         if (!res.ok) throw new Error(text || `HTTP ${res.status}`)
-        const data = JSON.parse(text)
+        JSON.parse(text)
         document.getElementById('title').value = ''
         document.getElementById('content').value = ''
         messageEl.textContent = 'Post created.'
@@ -138,6 +166,8 @@
         console.error('createPost error', err)
       }
     })
+
+    sortSelect.addEventListener('change', renderPosts)
 
     fetchPosts()
     setInterval(fetchPosts, 3000)
