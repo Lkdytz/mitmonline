@@ -72,6 +72,7 @@ app.post('/api/posts/:id/replies', async (req, res) => {
       return res.status(400).json({ error: 'Reply content required' })
     }
     const id = Number(req.params.id)
+
     for (let attempt = 0; attempt < 4; attempt++) {
       const { json, sha } = await getFile()
       json.posts = json.posts || []

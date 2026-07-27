@@ -13,8 +13,19 @@ function ensureEnv() {
 async function getFile() {
   ensureEnv()
   const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`
-  const res = await fetch(url, { headers: { Authorization: `token ${TOKEN}`, Accept: 'application/vnd.github.v3+json' } })
-  if (!res.ok) return { json: { posts: [], nextId: 1 }, sha: null }
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      Accept: 'application/vnd.github+json'
+    }
+  })
+  if (res.status === 404) {
+    return { json: { posts: [], nextId: 1 }, sha: null }
+  }
+  if (!res.ok) {
+    const txt = await res.text()
+    throw new Error(`GitHub GET failed: ${res.status} ${txt}`)
+  }
   const data = await res.json()
   const content = Buffer.from(data.content, 'base64').toString('utf8')
   return { json: JSON.parse(content), sha: data.sha }
@@ -26,7 +37,14 @@ async function putFile(newJson, sha, message = 'Update forum data') {
   const content = Buffer.from(JSON.stringify(newJson, null, 2)).toString('base64')
   const body = { message, content, branch: BRANCH }
   if (sha) body.sha = sha
-  const res = await fetch(url, { method: 'PUT', headers: { Authorization: `token ${TOKEN}`, Accept: 'application/vnd.github.v3+json' }, body: JSON.stringify(body) })
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      Accept: 'application/vnd.github+json'
+    },
+    body: JSON.stringify(body)
+  })
   if (!res.ok) {
     const txt = await res.text()
     throw new Error('GitHub PUT failed: ' + txt)
