@@ -45,10 +45,11 @@
       try {
         const res = await fetch(`${api}/posts`)
         const data = await res.json()
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
         renderPosts(data)
       } catch (err) {
-        postsEl.textContent = 'Failed to load posts.'
-        console.error(err)
+        postsEl.textContent = 'Failed to load posts: ' + err.message
+        console.error('fetchPosts error', err)
       }
     }
 
