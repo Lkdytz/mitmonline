@@ -5,7 +5,14 @@
       "title": "Welcome!",
       "content": "Welcome to Malcolminthemiddle.online!",
       "author": "Owner (Dylan)",
-      "replies": [],
+      "replies": [
+        {
+          "id": 1785164246817,
+          "content": "test",
+          "author": "TOTALLY NOT OWNER",
+          "createdAt": 1785164246817
+        }
+      ],
       "createdAt": 1785163602969
     },
     {
