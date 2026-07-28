@@ -7,9 +7,11 @@
       "author": "Digituniq",
       "replies": [],
       "reactions": {
-        "like": 0
+        "like": 1
       },
-      "likedBy": [],
+      "likedBy": [
+        1
+      ],
       "createdAt": 1785209667185
     },
     {
