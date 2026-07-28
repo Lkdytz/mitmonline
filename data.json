@@ -5,7 +5,14 @@
       "title": "HIII",
       "content": "Love how this webside looks :) cool!",
       "author": "Isaac_Pilgrim",
-      "replies": [],
+      "replies": [
+        {
+          "id": 1785200510435,
+          "content": "Thank u!!",
+          "author": "Lkdytz",
+          "createdAt": 1785200510435
+        }
+      ],
       "reactions": {
         "like": 1
       },
