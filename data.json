@@ -1,6 +1,18 @@
 {
   "posts": [
     {
+      "id": 4,
+      "title": "hi!",
+      "content": "hello fellow malcolm in the middle fans",
+      "author": "paulmccartney",
+      "replies": [],
+      "reactions": {
+        "like": 0
+      },
+      "likedBy": [],
+      "createdAt": 1785200635115
+    },
+    {
       "id": 3,
       "title": "HIII",
       "content": "Love how this webside looks :) cool!",
@@ -52,7 +64,7 @@
       ]
     }
   ],
-  "nextId": 4,
+  "nextId": 5,
   "users": [
     {
       "id": 1,
