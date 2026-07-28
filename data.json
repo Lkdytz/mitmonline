@@ -43,7 +43,13 @@
       "username": "kasey_andrews09",
       "password": "97181cf52754ed93a6baeffc91d4ff5d5c50d970615bbd15c0882a776c6492a2",
       "token": "5de9f606b128f7b2dd462d6c0c8b670f0c4141d8a970911d"
+    },
+    {
+      "id": 3,
+      "username": "Isaac_Pilgrim",
+      "password": "8b31ce3eb27427132deb79b089fd3dc77f156cf7504304079e2e4ac7fdc91ab0",
+      "token": "d6d4a47d2e5d5a0adc16d29c5b83a7754c3dceaf08fa4473"
     }
   ],
-  "nextUserId": 3
+  "nextUserId": 4
 }
