@@ -1,6 +1,18 @@
 {
   "posts": [
     {
+      "id": 5,
+      "title": "Saddest Malcolm In The Middle Episodes",
+      "content": "Yo guys, what are some of the saddest Malcolm in the Middle episodes? Reply down below!",
+      "author": "kasey_andrews09",
+      "replies": [],
+      "reactions": {
+        "like": 0
+      },
+      "likedBy": [],
+      "createdAt": 1785204097892
+    },
+    {
       "id": 4,
       "title": "hi!",
       "content": "hello fellow malcolm in the middle fans",
@@ -69,7 +81,7 @@
       ]
     }
   ],
-  "nextId": 5,
+  "nextId": 6,
   "users": [
     {
       "id": 1,
