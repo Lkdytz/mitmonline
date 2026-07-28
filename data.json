@@ -1,6 +1,18 @@
 {
   "posts": [
     {
+      "id": 6,
+      "title": "Hii!",
+      "content": "This websites so cool!! Hi fellow malc fans!!",
+      "author": "mikenesmith",
+      "replies": [],
+      "reactions": {
+        "like": 0
+      },
+      "likedBy": [],
+      "createdAt": 1785205564769
+    },
+    {
       "id": 5,
       "title": "Saddest Malcolm In The Middle Episodes",
       "content": "Yo guys, what are some of the saddest Malcolm in the Middle episodes? Reply down below!",
@@ -90,7 +102,7 @@
       ]
     }
   ],
-  "nextId": 6,
+  "nextId": 7,
   "users": [
     {
       "id": 1,
