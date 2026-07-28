@@ -38,7 +38,14 @@
       "title": "hi!",
       "content": "hello fellow malcolm in the middle fans",
       "author": "paulmccartney",
-      "replies": [],
+      "replies": [
+        {
+          "id": 1785205661826,
+          "content": "holy shit. its paul mccartney",
+          "author": "mikenesmith",
+          "createdAt": 1785205661826
+        }
+      ],
       "reactions": {
         "like": 2
       },
