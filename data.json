@@ -1,6 +1,18 @@
 {
   "posts": [
     {
+      "id": 3,
+      "title": "HIII",
+      "content": "Love how this webside looks :) cool!",
+      "author": "Isaac_Pilgrim",
+      "replies": [],
+      "reactions": {
+        "like": 0
+      },
+      "likedBy": [],
+      "createdAt": 1785200418763
+    },
+    {
       "id": 2,
       "title": "Hello!",
       "content": "Hey all, it’s Kasey, idk how early I am to the website but it rocks for sure! My favorite MITM season is ALL OF THEM! Lol, cool site!",
@@ -30,7 +42,7 @@
       ]
     }
   ],
-  "nextId": 3,
+  "nextId": 4,
   "users": [
     {
       "id": 1,
