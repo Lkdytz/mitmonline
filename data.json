@@ -149,7 +149,13 @@
       "username": "mikenesmith",
       "password": "cc450d46564c72b401b246547599662d95b0c09d9128010d9803301c3d36a119",
       "token": "fb57ea1cab5279fdc1972ce4b9fd285c848d13c07936f816"
+    },
+    {
+      "id": 6,
+      "username": "Digituniq",
+      "password": "f110246aac312aebf8bbf2da448a58716bf8d15d809e41fd433e360cf817706f",
+      "token": "75e87faf5edc33cbea2ca790f22551a066a81592b6ca6e1d"
     }
   ],
-  "nextUserId": 6
+  "nextUserId": 7
 }
