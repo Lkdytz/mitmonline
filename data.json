@@ -113,7 +113,13 @@
       "username": "paulmccartney",
       "password": "c42f37abaf4f3e7624337c9e5c054e1c07310cfeaff463f601b4833c80915642",
       "token": "280eb2e32a305fe920e22310cb768a05f49d2e1e17529164"
+    },
+    {
+      "id": 5,
+      "username": "mikenesmith",
+      "password": "cc450d46564c72b401b246547599662d95b0c09d9128010d9803301c3d36a119",
+      "token": "fb57ea1cab5279fdc1972ce4b9fd285c848d13c07936f816"
     }
   ],
-  "nextUserId": 5
+  "nextUserId": 6
 }
