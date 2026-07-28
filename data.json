@@ -7,9 +7,11 @@
       "author": "Guest #1",
       "replies": [],
       "reactions": {
-        "like": 0
+        "like": 1
       },
-      "likedBy": [],
+      "likedBy": [
+        1
+      ],
       "createdAt": 1785216726461
     },
     {
