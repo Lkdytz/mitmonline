@@ -34,10 +34,11 @@
         }
       ],
       "reactions": {
-        "like": 1
+        "like": 2
       },
       "likedBy": [
-        5
+        5,
+        1
       ],
       "createdAt": 1785204097892
     },
