@@ -71,7 +71,13 @@
       "username": "Isaac_Pilgrim",
       "password": "8b31ce3eb27427132deb79b089fd3dc77f156cf7504304079e2e4ac7fdc91ab0",
       "token": "d6d4a47d2e5d5a0adc16d29c5b83a7754c3dceaf08fa4473"
+    },
+    {
+      "id": 4,
+      "username": "paulmccartney",
+      "password": "c42f37abaf4f3e7624337c9e5c054e1c07310cfeaff463f601b4833c80915642",
+      "token": "280eb2e32a305fe920e22310cb768a05f49d2e1e17529164"
     }
   ],
-  "nextUserId": 4
+  "nextUserId": 5
 }
