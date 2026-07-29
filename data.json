@@ -153,7 +153,10 @@
       "id": 1,
       "username": "Lkdytz",
       "password": "3043349a5bd8df95860546df32e1d8eddabb505c807ea8b6a4c80bd60308c389",
-      "token": "0d8858d01838d429dbfa273b929897f5db01e7cae346dca5"
+      "token": "0d8858d01838d429dbfa273b929897f5db01e7cae346dca5",
+      "badges": [
+        "Chatter"
+      ]
     },
     {
       "id": 2,
@@ -186,5 +189,22 @@
       "token": "75e87faf5edc33cbea2ca790f22551a066a81592b6ca6e1d"
     }
   ],
-  "nextUserId": 7
+  "nextUserId": 7,
+  "chatMessages": [
+    {
+      "id": 1,
+      "author": "Lkdytz",
+      "content": "Hilo",
+      "createdAt": 1785290367184
+    }
+  ],
+  "polls": [],
+  "media": [],
+  "events": [],
+  "news": [],
+  "nextMessageId": 2,
+  "nextPollId": 1,
+  "nextMediaId": 1,
+  "nextEventId": 1,
+  "nextNewsId": 1
 }
