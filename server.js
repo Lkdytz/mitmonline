@@ -94,6 +94,66 @@ app.get('/signup/index.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'signup', 'index.html'))
 })
 
+app.get('/chat', (req, res) => {
+  res.sendFile(path.join(__dirname, 'chat', 'index.html'))
+})
+
+app.get('/chat/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'chat', 'index.html'))
+})
+
+app.get('/chat/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'chat', 'index.html'))
+})
+
+app.get('/profile', (req, res) => {
+  res.sendFile(path.join(__dirname, 'profile', 'index.html'))
+})
+
+app.get('/profile/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'profile', 'index.html'))
+})
+
+app.get('/profile/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'profile', 'index.html'))
+})
+
+app.get('/polls', (req, res) => {
+  res.sendFile(path.join(__dirname, 'polls', 'index.html'))
+})
+
+app.get('/polls/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'polls', 'index.html'))
+})
+
+app.get('/polls/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'polls', 'index.html'))
+})
+
+app.get('/media', (req, res) => {
+  res.sendFile(path.join(__dirname, 'media', 'index.html'))
+})
+
+app.get('/media/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'media', 'index.html'))
+})
+
+app.get('/media/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'media', 'index.html'))
+})
+
+app.get('/events', (req, res) => {
+  res.sendFile(path.join(__dirname, 'events', 'index.html'))
+})
+
+app.get('/events/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'events', 'index.html'))
+})
+
+app.get('/events/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'events', 'index.html'))
+})
+
 app.get('/index.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'))
 })
