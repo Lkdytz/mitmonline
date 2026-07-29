@@ -155,7 +155,8 @@
       "password": "3043349a5bd8df95860546df32e1d8eddabb505c807ea8b6a4c80bd60308c389",
       "token": "154f8e9ce43740d8784fe4b9c289c6bdf8050155f9545379",
       "badges": [
-        "Chatter"
+        "Chatter",
+        "Media sharer"
       ]
     },
     {
@@ -199,12 +200,20 @@
     }
   ],
   "polls": [],
-  "media": [],
+  "media": [
+    {
+      "id": 1,
+      "author": "Lkdytz",
+      "url": "https://hugelolcdn.com/thumbnail/323483.jpg",
+      "caption": "cats ate her face",
+      "createdAt": 1785290547146
+    }
+  ],
   "events": [],
   "news": [],
   "nextMessageId": 2,
   "nextPollId": 1,
-  "nextMediaId": 1,
+  "nextMediaId": 2,
   "nextEventId": 1,
   "nextNewsId": 1
 }
