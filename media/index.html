@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Media Wall</title>
+  <link rel="preload" href="/Funkyfre.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <style>
+    @font-face { font-family: 'MITMFont'; src: url('/Funkyfre.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
+    :root{--bg:#FFBF00}
+    html,body{height:100%}
+    body{font-family:'MITMFont',system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);margin:0;padding:18px}
+    .container{max-width:820px;margin:0 auto;background:#fff;padding:22px;border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.1)}
+    h1{margin-top:0}
+    .media-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:16px}
+    .media-item{border:1px solid #b59a36;border-radius:12px;background:#f8f0b6;padding:12px}
+    .media-item img{width:100%;border-radius:10px}
+    .media-meta{margin-top:10px;font-size:.9rem;color:#333}
+    input,textarea,button{width:100%;padding:12px;border:1px solid #b59a36;border-radius:8px;margin-top:12px;font-family:'MITMFont',inherit}
+    button{background:#fff;color:#000;cursor:pointer}
+    .small{font-size:.95rem;color:#555}
+    .link-row{margin-top:16px;text-align:center}
+    .link-row a{color:#000;text-decoration:none;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Media Wall</h1>
+    <div id="status" class="small">Loading media...</div>
+    <div id="mediaGrid" class="media-grid"></div>
+    <h2>Share media</h2>
+    <input id="mediaUrl" placeholder="Media URL" />
+    <input id="mediaCaption" placeholder="Caption (optional)" />
+    <button id="shareBtn">Share</button>
+    <div class="link-row">
+      <a href="/forums/index.html">Back to forum</a> · <a href="/index.html">Home</a>
+    </div>
+  </div>
+  <script>
+    const api = '/api'
+    const status = document.getElementById('status')
+    const mediaGrid = document.getElementById('mediaGrid')
+    const mediaUrl = document.getElementById('mediaUrl')
+    const mediaCaption = document.getElementById('mediaCaption')
+    const shareBtn = document.getElementById('shareBtn')
+    const token = localStorage.getItem('mitmForumToken') || ''
+
+    function getAuthHeaders() {
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers['X-User-Token'] = token
+      return headers
+    }
+
+    function createMediaItem(item) {
+      const card = document.createElement('div')
+      card.className = 'media-item'
+      const isImage = item.url.match(/\.(jpeg|jpg|png|gif|webp)$/i)
+      card.innerHTML = `
+        ${isImage ? `<img src="${item.url}" alt="${item.caption || 'Media'}" />` : `<a href="${item.url}" target="_blank">${item.url}</a>`}
+        <div class="media-meta"><strong>${item.author}</strong> • ${new Date(item.createdAt).toLocaleDateString()}</div>
+        <div>${item.caption || ''}</div>
+      `
+      return card
+    }
+
+    async function loadMedia() {
+      try {
+        const res = await fetch(`${api}/media`)
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to load media')
+        mediaGrid.innerHTML = ''
+        if (!data.length) mediaGrid.innerHTML = '<p>No media shared yet.</p>'
+        data.forEach(item => mediaGrid.appendChild(createMediaItem(item)))
+        status.textContent = token ? 'Share a URL or browse media.' : 'View media or log in to share.'
+      } catch (err) {
+        status.textContent = err.message
+        console.error(err)
+      }
+    }
+
+    async function shareMedia() {
+      const url = mediaUrl.value.trim()
+      const caption = mediaCaption.value.trim()
+      if (!url) return alert('Enter a media URL.')
+      shareBtn.disabled = true
+      try {
+        const res = await fetch(`${api}/media`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ url, caption })
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Share failed')
+        mediaUrl.value = ''
+        mediaCaption.value = ''
+        loadMedia()
+      } catch (err) {
+        alert(err.message)
+      } finally {
+        shareBtn.disabled = false
+      }
+    }
+
+    shareBtn.addEventListener('click', shareMedia)
+    loadMedia()
+  </script>
+</body>
+</html>

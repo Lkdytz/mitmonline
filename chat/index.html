@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Live Chat</title>
+  <link rel="preload" href="/Funkyfre.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <style>
+    @font-face { font-family: 'MITMFont'; src: url('/Funkyfre.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
+    :root{--bg:#FFBF00}
+    html,body{height:100%}
+    body{font-family:'MITMFont',system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);margin:0;padding:18px}
+    .container{max-width:720px;margin:0 auto;background:#fff;padding:22px;border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.1)}
+    h1{margin-top:0}
+    .chat-log{max-height:520px;overflow:auto;padding:10px;border:1px solid #b59a36;border-radius:10px;background:#f7e7b4}
+    .chat-item{margin-bottom:10px;padding:10px;background:#fff;border-radius:10px}
+    .chat-meta{font-size:.85rem;color:#555;margin-bottom:6px}
+    input,textarea,button{width:100%;padding:12px;border:1px solid #b59a36;border-radius:8px;margin-top:12px;font-family:'MITMFont',inherit}
+    button{background:#fff;color:#000;cursor:pointer}
+    .small{font-size:.95rem;color:#555}
+    .link-row{margin-top:16px;text-align:center}
+    .link-row a{color:#000;text-decoration:none;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Live Chat</h1>
+    <div id="status" class="small">Loading chat...</div>
+    <div id="chatLog" class="chat-log"></div>
+    <textarea id="messageInput" placeholder="Write a message..."></textarea>
+    <button id="sendBtn">Send Message</button>
+    <div class="link-row">
+      <a href="/forums/index.html">Back to forum</a> · <a href="/index.html">Home</a>
+    </div>
+  </div>
+  <script>
+    const api = '/api'
+    const chatLog = document.getElementById('chatLog')
+    const status = document.getElementById('status')
+    const messageInput = document.getElementById('messageInput')
+    const sendBtn = document.getElementById('sendBtn')
+    const currentToken = localStorage.getItem('mitmForumToken') || ''
+    const currentUser = localStorage.getItem('mitmForumUser') || ''
+
+    function getAuthHeaders() {
+      const headers = { 'Content-Type': 'application/json' }
+      if (currentToken) headers['X-User-Token'] = currentToken
+      return headers
+    }
+
+    function renderMessages(messages) {
+      chatLog.innerHTML = ''
+      messages.forEach(msg => {
+        const item = document.createElement('div')
+        item.className = 'chat-item'
+        item.innerHTML = `<div class="chat-meta"><strong>${msg.author}</strong> • ${new Date(msg.createdAt).toLocaleTimeString()}</div><div>${msg.content}</div>`
+        chatLog.appendChild(item)
+      })
+      chatLog.scrollTop = chatLog.scrollHeight
+    }
+
+    async function fetchMessages() {
+      try {
+        const res = await fetch(`${api}/chat/messages`)
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to load chat')
+        renderMessages(data)
+        status.textContent = currentUser ? `Logged in as ${currentUser}` : 'Chat as a guest or log in for a name.'
+      } catch (err) {
+        status.textContent = 'Unable to load chat.'
+        console.error(err)
+      }
+    }
+
+    async function sendMessage() {
+      const content = messageInput.value.trim()
+      if (!content) return
+      sendBtn.disabled = true
+      try {
+        const res = await fetch(`${api}/chat/messages`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ content })
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Send failed')
+        messageInput.value = ''
+        fetchMessages()
+      } catch (err) {
+        alert(err.message)
+      } finally {
+        sendBtn.disabled = false
+      }
+    }
+
+    sendBtn.addEventListener('click', sendMessage)
+    fetchMessages()
+    setInterval(fetchMessages, 3000)
+  </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>User Profile</title>
+  <link rel="preload" href="/Funkyfre.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <style>
+    @font-face { font-family: 'MITMFont'; src: url('/Funkyfre.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
+    :root{--bg:#FFBF00}
+    html,body{height:100%}
+    body{font-family:'MITMFont',system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);margin:0;padding:18px}
+    .container{max-width:640px;margin:0 auto;background:#fff;padding:22px;border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.1)}
+    h1{margin-top:0}
+    .info-box{padding:14px;background:#f7e7b4;border-radius:10px;margin-bottom:16px}
+    .badge{display:inline-block;background:#d49f00;color:#fff;padding:6px 10px;border-radius:999px;margin:4px 4px 0 0;font-size:.85rem}
+    textarea,input,button{width:100%;padding:12px;border:1px solid #b59a36;border-radius:8px;margin-top:12px;font-family:'MITMFont',inherit}
+    button{background:#fff;color:#000;cursor:pointer}
+    .note{margin-top:12px;color:#555}
+    .link-row{margin-top:16px;text-align:center}
+    .link-row a{color:#000;text-decoration:none;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>User Profile</h1>
+    <div id="status" class="note">Checking login...</div>
+    <div id="profileArea" class="hidden">
+      <div class="info-box">
+        <div><strong>Username:</strong> <span id="username"></span></div>
+        <div><strong>Joined:</strong> <span id="joinedAt"></span></div>
+        <div><strong>Bio:</strong></div>
+        <div id="bioText"></div>
+      </div>
+      <label for="bioInput">Edit bio</label>
+      <textarea id="bioInput" rows="4" placeholder="Tell others about yourself..."></textarea>
+      <button id="saveBioBtn">Save Bio</button>
+      <div class="note">Badges:</div>
+      <div id="badges"></div>
+    </div>
+    <div class="link-row">
+      <a href="/forums/index.html">Back to forum</a> · <a href="/index.html">Home</a>
+    </div>
+  </div>
+  <script>
+    const api = '/api'
+    const status = document.getElementById('status')
+    const profileArea = document.getElementById('profileArea')
+    const usernameEl = document.getElementById('username')
+    const joinedAtEl = document.getElementById('joinedAt')
+    const bioText = document.getElementById('bioText')
+    const bioInput = document.getElementById('bioInput')
+    const saveBioBtn = document.getElementById('saveBioBtn')
+
+    const token = localStorage.getItem('mitmForumToken') || ''
+
+    function getAuthHeaders() {
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers['X-User-Token'] = token
+      return headers
+    }
+
+    function renderBadges(badges) {
+      const container = document.getElementById('badges')
+      container.innerHTML = ''
+      if (!badges || badges.length === 0) {
+        container.textContent = 'No badges yet.'
+        return
+      }
+      badges.forEach(badge => {
+        const span = document.createElement('span')
+        span.className = 'badge'
+        span.textContent = badge
+        container.appendChild(span)
+      })
+    }
+
+    async function loadProfile() {
+      if (!token) {
+        status.textContent = 'You must log in to view your profile.'
+        return
+      }
+      try {
+        const res = await fetch(`${api}/auth/me`, { headers: getAuthHeaders() })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to load profile')
+        usernameEl.textContent = data.username
+        joinedAtEl.textContent = new Date(data.joinedAt).toLocaleDateString()
+        bioText.textContent = data.bio || 'No bio yet.'
+        bioInput.value = data.bio || ''
+        renderBadges(data.badges)
+        status.textContent = 'Edit your profile below.'
+        profileArea.classList.remove('hidden')
+      } catch (err) {
+        status.textContent = err.message
+        console.error(err)
+      }
+    }
+
+    async function saveBio() {
+      saveBioBtn.disabled = true
+      try {
+        const res = await fetch(`${api}/users/me`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ bio: bioInput.value.trim() })
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Save failed')
+        bioText.textContent = data.bio || 'No bio yet.'
+        status.textContent = 'Bio saved.'
+      } catch (err) {
+        status.textContent = err.message
+      } finally {
+        saveBioBtn.disabled = false
+      }
+    }
+
+    saveBioBtn.addEventListener('click', saveBio)
+    loadProfile()
+  </script>
+</body>
+</html>

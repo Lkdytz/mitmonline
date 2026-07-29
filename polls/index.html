@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Polls</title>
+  <link rel="preload" href="/Funkyfre.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <style>
+    @font-face { font-family: 'MITMFont'; src: url('/Funkyfre.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
+    :root{--bg:#FFBF00}
+    html,body{height:100%}
+    body{font-family:'MITMFont',system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);margin:0;padding:18px}
+    .container{max-width:720px;margin:0 auto;background:#fff;padding:22px;border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.1)}
+    h1{margin-top:0}
+    .poll-item{border:1px solid #b59a36;border-radius:12px;padding:14px;margin-bottom:16px;background:#f8f0b6}
+    .poll-title{font-weight:700;margin-bottom:10px}
+    button,input,textarea{width:100%;padding:12px;border:1px solid #b59a36;border-radius:8px;margin-top:12px;font-family:'MITMFont',inherit}
+    button{background:#fff;color:#000;cursor:pointer}
+    .option-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+    .badge{display:inline-block;background:#d49f00;color:#fff;padding:6px 10px;border-radius:999px;margin:4px 4px 0 0;font-size:.85rem}
+    .small{font-size:.95rem;color:#555}
+    .link-row{margin-top:16px;text-align:center}
+    .link-row a{color:#000;text-decoration:none;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Polls</h1>
+    <div id="status" class="small">Loading polls...</div>
+    <div id="pollList"></div>
+    <h2>Create a new poll</h2>
+    <input id="pollTitle" placeholder="Poll question" />
+    <input id="pollOption1" placeholder="Option 1" />
+    <input id="pollOption2" placeholder="Option 2" />
+    <input id="pollOption3" placeholder="Option 3 (optional)" />
+    <button id="createPollBtn">Create Poll</button>
+    <div class="link-row">
+      <a href="/forums/index.html">Back to forum</a> · <a href="/index.html">Home</a>
+    </div>
+  </div>
+  <script>
+    const api = '/api'
+    const status = document.getElementById('status')
+    const pollList = document.getElementById('pollList')
+    const titleInput = document.getElementById('pollTitle')
+    const option1 = document.getElementById('pollOption1')
+    const option2 = document.getElementById('pollOption2')
+    const option3 = document.getElementById('pollOption3')
+    const createPollBtn = document.getElementById('createPollBtn')
+    const currentUserId = localStorage.getItem('mitmForumUserId') || ''
+    const token = localStorage.getItem('mitmForumToken') || ''
+
+    function getAuthHeaders() {
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers['X-User-Token'] = token
+      return headers
+    }
+
+    function renderPolls(polls) {
+      pollList.innerHTML = ''
+      if (!polls.length) {
+        pollList.innerHTML = '<p>No polls yet.</p>'
+        return
+      }
+      polls.forEach(poll => {
+        const item = document.createElement('div')
+        item.className = 'poll-item'
+        const votedIndex = currentUserId && poll.votes ? poll.votes[String(currentUserId)] : undefined
+        const hasVoted = votedIndex !== undefined
+        const optionsHtml = poll.options.map((opt, index) => {
+          const voteLabel = hasVoted ? ` (${opt.count} votes)` : ''
+          return `<div class="option-row"><span>${index + 1}. ${opt.text}${voteLabel}</span>${hasVoted ? '' : `<button data-id="${poll.id}" data-option="${index}" class="voteBtn">Vote</button>`}</div>`
+        }).join('')
+        item.innerHTML = `<div class="poll-title">${poll.title}</div><div>${optionsHtml}</div><div class="small">Created by ${poll.author}</div>${hasVoted ? '<div class="badge">You voted</div>' : ''}`
+        pollList.appendChild(item)
+      })
+      pollList.querySelectorAll('.voteBtn').forEach(button => {
+        button.addEventListener('click', async () => {
+          const pollId = button.dataset.id
+          const option = button.dataset.option
+          try {
+            const res = await fetch(`${api}/polls/${pollId}/vote`, {
+              method: 'POST',
+              headers: getAuthHeaders(),
+              body: JSON.stringify({ option })
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Vote failed')
+            loadPolls()
+          } catch (err) {
+            alert(err.message)
+          }
+        })
+      })
+    }
+
+    async function loadPolls() {
+      try {
+        const res = await fetch(`${api}/polls`)
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to load polls')
+        renderPolls(data)
+        status.textContent = token ? 'Vote in polls or create one.' : 'Log in to vote in polls.'
+      } catch (err) {
+        status.textContent = err.message
+        console.error(err)
+      }
+    }
+
+    async function createPoll() {
+      const title = titleInput.value.trim()
+      const options = [option1.value.trim(), option2.value.trim(), option3.value.trim()].filter(Boolean)
+      if (!title || options.length < 2) return alert('Enter a poll title and at least two options.')
+      createPollBtn.disabled = true
+      try {
+        const res = await fetch(`${api}/polls`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ title, options })
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Create failed')
+        titleInput.value = ''
+        option1.value = ''
+        option2.value = ''
+        option3.value = ''
+        loadPolls()
+      } catch (err) {
+        alert(err.message)
+      } finally {
+        createPollBtn.disabled = false
+      }
+    }
+
+    createPollBtn.addEventListener('click', createPoll)
+    loadPolls()
+  </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Events</title>
+  <link rel="preload" href="/Funkyfre.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <style>
+    @font-face { font-family: 'MITMFont'; src: url('/Funkyfre.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
+    :root{--bg:#FFBF00}
+    html,body{height:100%}
+    body{font-family:'MITMFont',system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);margin:0;padding:18px}
+    .container{max-width:760px;margin:0 auto;background:#fff;padding:22px;border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.1)}
+    h1{margin-top:0}
+    .event-item{border:1px solid #b59a36;border-radius:12px;padding:14px;margin-bottom:16px;background:#f8f0b6}
+    .event-title{font-weight:700;margin-bottom:8px}
+    .event-meta{font-size:.9rem;color:#333;margin-bottom:8px}
+    input,textarea,button{width:100%;padding:12px;border:1px solid #b59a36;border-radius:8px;margin-top:12px;font-family:'MITMFont',inherit}
+    button{background:#fff;color:#000;cursor:pointer}
+    .small{font-size:.95rem;color:#555}
+    .link-row{margin-top:16px;text-align:center}
+    .link-row a{color:#000;text-decoration:none;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Community Events</h1>
+    <div id="status" class="small">Loading events...</div>
+    <div id="eventList"></div>
+    <h2>Schedule an event</h2>
+    <input id="eventTitle" placeholder="Event title" />
+    <input id="eventDate" type="date" />
+    <textarea id="eventDescription" rows="4" placeholder="Description"></textarea>
+    <button id="createEventBtn">Create Event</button>
+    <div class="link-row">
+      <a href="/forums/index.html">Back to forum</a> · <a href="/index.html">Home</a>
+    </div>
+  </div>
+  <script>
+    const api = '/api'
+    const status = document.getElementById('status')
+    const eventList = document.getElementById('eventList')
+    const title = document.getElementById('eventTitle')
+    const dateInput = document.getElementById('eventDate')
+    const description = document.getElementById('eventDescription')
+    const createEventBtn = document.getElementById('createEventBtn')
+    const token = localStorage.getItem('mitmForumToken') || ''
+
+    function getAuthHeaders() {
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers['X-User-Token'] = token
+      return headers
+    }
+
+    function renderEvents(events) {
+      eventList.innerHTML = ''
+      if (!events.length) {
+        eventList.innerHTML = '<p>No events scheduled yet.</p>'
+        return
+      }
+      events.forEach(item => {
+        const card = document.createElement('div')
+        card.className = 'event-item'
+        card.innerHTML = `
+          <div class="event-title">${item.title}</div>
+          <div class="event-meta">${item.date} • ${item.author}</div>
+          <div>${item.description || ''}</div>
+        `
+        eventList.appendChild(card)
+      })
+    }
+
+    async function loadEvents() {
+      try {
+        const res = await fetch(`${api}/events`)
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to load events')
+        renderEvents(data)
+        status.textContent = token ? 'Create events or browse the schedule.' : 'View events or log in to create one.'
+      } catch (err) {
+        status.textContent = err.message
+        console.error(err)
+      }
+    }
+
+    async function createEvent() {
+      const titleValue = title.value.trim()
+      const dateValue = dateInput.value
+      const desc = description.value.trim()
+      if (!titleValue || !dateValue) return alert('Enter event title and date.')
+      createEventBtn.disabled = true
+      try {
+        const res = await fetch(`${api}/events`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ title: titleValue, date: dateValue, description: desc })
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Create failed')
+        title.value = ''
+        dateInput.value = ''
+        description.value = ''
+        loadEvents()
+      } catch (err) {
+        alert(err.message)
+      } finally {
+        createEventBtn.disabled = false
+      }
+    }
+
+    createEventBtn.addEventListener('click', createEvent)
+    loadEvents()
+  </script>
+</body>
+</html>
