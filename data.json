@@ -200,9 +200,18 @@
       "username": "Digituniq",
       "password": "f110246aac312aebf8bbf2da448a58716bf8d15d809e41fd433e360cf817706f",
       "token": "75e87faf5edc33cbea2ca790f22551a066a81592b6ca6e1d"
+    },
+    {
+      "id": 7,
+      "username": "itz_JanoRM",
+      "password": "5239c68b6b14fc64ce7d1b06f106871d12c0026ae6224bc19b56e16e78cd1b23",
+      "token": "2380fafcd9cef7d04d0d5c3c47e45ba5a6e4d83709838185",
+      "bio": "",
+      "badges": [],
+      "joinedAt": 1787715434872
     }
   ],
-  "nextUserId": 7,
+  "nextUserId": 8,
   "chatMessages": [
     {
       "id": 1,
