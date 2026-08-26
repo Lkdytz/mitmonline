@@ -1,6 +1,25 @@
 {
   "posts": [
     {
+      "id": 9,
+      "title": "WASSUP",
+      "content": "I don't really speak English very well because my native language is Spanish, but I've watched the entire series and the spin-off of *Malcolm in the Middle*. Oh, I almost forgot—my name is Jano. If you want to talk to me, look for me as \"Jano\" on the Munizcord Discord server.",
+      "author": "itz_JanoRM",
+      "replies": [],
+      "reactions": {
+        "like": 0,
+        "heart": 0,
+        "laugh": 0
+      },
+      "reactedBy": {
+        "like": [],
+        "heart": [],
+        "laugh": []
+      },
+      "likedBy": [],
+      "createdAt": 1787715684465
+    },
+    {
       "id": 8,
       "title": "My aunt Helen just died",
       "content": "Yea cats ate her face sadly 🙁",
@@ -159,7 +178,7 @@
       ]
     }
   ],
-  "nextId": 9,
+  "nextId": 10,
   "users": [
     {
       "id": 1,
