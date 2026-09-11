@@ -7,16 +7,20 @@
       "author": "itz_JanoRM",
       "replies": [],
       "reactions": {
-        "like": 0,
+        "like": 1,
         "heart": 0,
         "laugh": 0
       },
       "reactedBy": {
-        "like": [],
+        "like": [
+          1
+        ],
         "heart": [],
         "laugh": []
       },
-      "likedBy": [],
+      "likedBy": [
+        1
+      ],
       "createdAt": 1787715684465
     },
     {
