@@ -191,7 +191,8 @@
       "token": "154f8e9ce43740d8784fe4b9c289c6bdf8050155f9545379",
       "badges": [
         "Chatter",
-        "Media sharer"
+        "Media sharer",
+        "Event host"
       ]
     },
     {
@@ -253,11 +254,20 @@
       "createdAt": 1785290547146
     }
   ],
-  "events": [],
+  "events": [
+    {
+      "id": 1,
+      "title": "6/7/67",
+      "date": "2067-06-07",
+      "description": "The Most Goated Day OAT",
+      "author": "Lkdytz",
+      "createdAt": 1789103019360
+    }
+  ],
   "news": [],
   "nextMessageId": 2,
   "nextPollId": 1,
   "nextMediaId": 2,
-  "nextEventId": 1,
+  "nextEventId": 2,
   "nextNewsId": 1
 }
