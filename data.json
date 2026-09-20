@@ -1,6 +1,25 @@
 {
   "posts": [
     {
+      "id": 10,
+      "title": "whats up malculators",
+      "content": "its me drezzo of nocontexmalc how is everyone",
+      "author": "Guest #1",
+      "replies": [],
+      "reactions": {
+        "like": 0,
+        "heart": 0,
+        "laugh": 0
+      },
+      "reactedBy": {
+        "like": [],
+        "heart": [],
+        "laugh": []
+      },
+      "likedBy": [],
+      "createdAt": 1789938591272
+    },
+    {
       "id": 9,
       "title": "WASSUP",
       "content": "I don't really speak English very well because my native language is Spanish, but I've watched the entire series and the spin-off of *Malcolm in the Middle*. Oh, I almost forgot—my name is Jano. If you want to talk to me, look for me as \"Jano\" on the Munizcord Discord server.",
@@ -182,7 +201,7 @@
       ]
     }
   ],
-  "nextId": 10,
+  "nextId": 11,
   "users": [
     {
       "id": 1,
