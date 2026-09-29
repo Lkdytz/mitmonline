@@ -252,9 +252,18 @@
       "bio": "",
       "badges": [],
       "joinedAt": 1787715434872
+    },
+    {
+      "id": 8,
+      "username": "tyler291011",
+      "password": "7e331a2db78bc021d45aefc01ca1f14ea88a333975d1356839deabef24156e99",
+      "token": "2c0fe0fd2a33873c1aca21b4e400351e1b1e38cdaa82e4cb",
+      "bio": "",
+      "badges": [],
+      "joinedAt": 1790698088617
     }
   ],
-  "nextUserId": 8,
+  "nextUserId": 9,
   "chatMessages": [
     {
       "id": 1,
