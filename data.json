@@ -1,6 +1,25 @@
 {
   "posts": [
     {
+      "id": 11,
+      "title": "Woah",
+      "content": "Its definitely been a while since anyone talked here…",
+      "author": "Digituniq",
+      "replies": [],
+      "reactions": {
+        "like": 0,
+        "heart": 0,
+        "laugh": 0
+      },
+      "reactedBy": {
+        "like": [],
+        "heart": [],
+        "laugh": []
+      },
+      "likedBy": [],
+      "createdAt": 1793881872392
+    },
+    {
       "id": 10,
       "title": "whats up malculators",
       "content": "its me drezzo of nocontexmalc how is everyone",
@@ -201,7 +220,7 @@
       ]
     }
   ],
-  "nextId": 11,
+  "nextId": 12,
   "users": [
     {
       "id": 1,
